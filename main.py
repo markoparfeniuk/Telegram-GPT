@@ -1,5 +1,7 @@
 import os
 import telebot
+import threading
+import g4f
 
 # Read API Token from environment variables
 BOT_TOKEN: str = os.environ.get('BOT_TOKEN')
@@ -15,7 +17,20 @@ bot = telebot.TeleBot(BOT_TOKEN)
 # Handle AI command
 @bot.message_handler(content_types=["text"], commands=['ai'])
 def HandleAiMessage(inputMessage: telebot.types.Message):
-    bot.reply_to(inputMessage, "* ai responds *")
+    # Check that the massage contains some text
+    if (len(inputMessage.text) <= 5):
+        bot.reply_to(inputMessage,
+                     "Hi " + inputMessage.from_user.first_name + ",\nplease give me some data to process, syntax is: `/[command] [text to interact with]`")
+        return
+    # Create async thread to handle replies
+    thread = threading.Thread(target=ReplyAi, args=(inputMessage, "gpt-3.5-turbo"))
+    thread.start()
+
+# Create async reply
+def ReplyAi(inputMessage: telebot.types.Message, botType):
+    gptResponse: str = g4f.ChatCompletion.create(model=botType, messages=[{"role": "user", "content": inputMessage.text}])
+    bot.reply_to(inputMessage, gptResponse)
+    return
 
 # Welcome new users
 @bot.message_handler(content_types=["text"], commands=['start', 'hello'])
