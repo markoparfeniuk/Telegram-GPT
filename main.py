@@ -30,10 +30,18 @@ def send_welcome(inputMessage: telebot.types.Message):
 def send_welcome(inputMessage: telebot.types.Message):
     bot.reply_to(inputMessage, "This project is hosted on a GitHub repository. Here's the link: https://github.com/markoparfeniuk/Telegram-GPT")
 
+# Start a new conversation
+@bot.message_handler(content_types=["text"], commands=['new'])
+def start_new_conversation(inputMessage: telebot.types.Message):
+    chat_id = inputMessage.chat.id
+    if chat_id in chat_histories:
+        del chat_histories[chat_id]
+    bot.reply_to(inputMessage, "A new conversation has started. How can I assist you today?", parse_mode='Markdown')
+
 # Provide user with a list of commands
 @bot.message_handler(content_types=["text"], commands=['help'])
 def send_welcome(inputMessage: telebot.types.Message):
-    bot.reply_to(inputMessage, "*Let's chat!*\nTo continue, use any of the commands from the list:\n/start | /hello - start communicating with the bot;\n/info - get more information on a project.\nOr ask anything you want to know just by sending a message.", parse_mode='Markdown')
+    bot.reply_to(inputMessage, "To continue, use any of the commands from the list:\n/start | /hello - start communicating with the bot;\n/info - get more information on a project;\n/new - clear chat history and start a new conversation.\nOr ask anything you want to know just by sending a message.", parse_mode='Markdown')
 
 # Handle AI command
 @bot.message_handler(content_types=["text"])
