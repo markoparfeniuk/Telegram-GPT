@@ -4,6 +4,7 @@ import telebot
 import threading
 import g4f
 import re
+from collections import deque
 
 # Read API Token from environment variables
 BOT_TOKEN: str = os.environ.get('BOT_TOKEN')
@@ -15,6 +16,9 @@ if (":" not in BOT_TOKEN):
     raise Exception("Invalid BOT_TOKEN")
 # Generate bot object
 bot = telebot.TeleBot(BOT_TOKEN)
+
+# Create a dictionary to store the conversation history of each chat
+chat_histories = {}
 
 # Welcome new users
 @bot.message_handler(content_types=["text"], commands=['start', 'hello'])
@@ -50,13 +54,22 @@ def ReplyAi(inputMessage: telebot.types.Message, botType):
     inputQuery = re.sub(r"\/(\w+)", "", inputMessage.text).strip()
     if (not inputQuery):
         inputQuery = "Hello, who are you?"
+    # Get the conversation history for this chat
+    chat_id = inputMessage.chat.id
+    if chat_id not in chat_histories:
+        chat_histories[chat_id] = deque(maxlen=15)
+    chat_history = chat_histories[chat_id]
+    # Add the new message to the conversation history
+    chat_history.append({"role": "user", "content": inputQuery})
     # Create the GPT4FREE instance
-    gptResponse: str = g4f.ChatCompletion.create(model=botType, messages=[{"role": "user", "content": inputQuery}])
+    gptResponse: str = g4f.ChatCompletion.create(model=botType, messages=list(chat_history))
     # Cleanup response from GPT if needed
     gptResponse = re.sub(r"(\[\^\d\^\])", "", gptResponse)
     # Handle some exceptions
     if (not gptResponse):
         gptResponse = "An empty response was returned..."
+    # Add the AI's response to the conversation history
+    chat_history.append({"role": "assistant", "content": gptResponse})
     # Process the input text
     bot.edit_message_text(gptResponse, inputMessage.chat.id, newReply.id)
 
