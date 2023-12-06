@@ -16,12 +16,27 @@ if (":" not in BOT_TOKEN):
 # Generate bot object
 bot = telebot.TeleBot(BOT_TOKEN)
 
+# Welcome new users
+@bot.message_handler(content_types=["text"], commands=['start', 'hello'])
+def send_welcome(inputMessage: telebot.types.Message):
+    bot.reply_to(inputMessage, "*Hello, " + inputMessage.from_user.first_name + "!*\nUse /help to get to know the available commands or start chatting right away.\nHow can I assist you today?", parse_mode='Markdown')
+
+# Give project information
+@bot.message_handler(content_types=["text"], commands=['info'])
+def send_welcome(inputMessage: telebot.types.Message):
+    bot.reply_to(inputMessage, "This project is hosted on a GitHub repository. Here's the link: https://github.com/markoparfeniuk/Telegram-GPT")
+
+# Provide user with a list of commands
+@bot.message_handler(content_types=["text"], commands=['help'])
+def send_welcome(inputMessage: telebot.types.Message):
+    bot.reply_to(inputMessage, "*Let's chat!*\nTo continue, use any of the commands from the list:\n/start | /hello - start communicating with the bot;\n/info - get more information on a project.\nOr ask anything you want to know just by sending a message.", parse_mode='Markdown')
+
 # Handle AI command
-@bot.message_handler(content_types=["text"], commands=['ai'])
+@bot.message_handler(content_types=["text"])
 def HandleAiMessage(inputMessage: telebot.types.Message):
     # Check that the massage contains some text
     if (len(inputMessage.text) <= 5):
-        bot.reply_to(inputMessage, "Hi " + inputMessage.from_user.first_name + ",\nplease give me some data to process, syntax is: `/[command] [text to interact with]`")
+        bot.reply_to(inputMessage, "Hi " + inputMessage.from_user.first_name + ",\nplease give me some data to process.")
         return
     # Create async thread to handle replies
     thread = threading.Thread(target=ReplyAi, args=(inputMessage, "gpt-3.5-turbo"))
@@ -44,21 +59,6 @@ def ReplyAi(inputMessage: telebot.types.Message, botType):
         gptResponse = "An empty response was returned..."
     # Process the input text
     bot.edit_message_text(gptResponse, inputMessage.chat.id, newReply.id)
-
-# Welcome new users
-@bot.message_handler(content_types=["text"], commands=['start', 'hello'])
-def send_welcome(inputMessage: telebot.types.Message):
-    bot.reply_to(inputMessage, "*Hello, " + inputMessage.from_user.first_name + "!*\nUse /help to get to know the available commands.\nHow can i assist you today?", parse_mode='Markdown')
-
-# Give project information
-@bot.message_handler(content_types=["text"], commands=['info'])
-def send_welcome(inputMessage: telebot.types.Message):
-    bot.reply_to(inputMessage, "This project is hosted on a GitHub repository. Here's the link: https://github.com/markoparfeniuk/Telegram-GPT")
-
-# Provide user with a list of commands
-@bot.message_handler(content_types=["text"], commands=['help'])
-def send_welcome(inputMessage: telebot.types.Message):
-    bot.reply_to(inputMessage, "*Let's chat!*\nTo continue, use any of the commands from the list:\n\n/start | /hello - start communicating with the bot\n/ai - for communication with AI\n/info - get more information on a project", parse_mode='Markdown')
 
 
 if __name__ == "__main__":
