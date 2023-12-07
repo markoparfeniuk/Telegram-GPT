@@ -75,7 +75,22 @@ def ReplyAi(inputMessage: telebot.types.Message, botType):
     # Add the new message to the conversation history
     chat_history.append({"role": "user", "content": inputQuery})
     # Create the GPT4FREE instance
-    gptResponse: str = g4f.ChatCompletion.create(model=botType, messages=list(chat_history))
+    try:
+        gptResponse: str = g4f.ChatCompletion.create(model=botType, messages=[{"role": "user", "content": inputQuery}])
+    except Exception as retExc:
+        # Get response
+        response = str(retExc)
+        # Check if we have some known errors
+        if (str(retExc).startswith("CaptchaChallenge:")):
+            gptResponse = "This service is currently overloaded, please try again later"
+        elif (str(retExc).startswith("\'adaptiveCards\'")):
+            gptResponse = "Image generation is not yet supported"
+        elif (str(retExc).startswith("\'message\'")):
+            gptResponse = "This service is currently overloaded, please try again later"
+        else:
+            # Return the error message
+            bot.edit_message_text(response, inputMessage.chat.id, newReply.id)
+            return
     # Cleanup response from GPT if needed
     gptResponse = re.sub(r"(\[\^\d\^\])", "", gptResponse)
     # Handle some exceptions
