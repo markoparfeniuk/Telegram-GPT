@@ -54,6 +54,11 @@ def HandleAiMessage(inputMessage: telebot.types.Message):
     thread = threading.Thread(target=ReplyAi, args=(inputMessage, "gpt-3.5-turbo"))
     thread.start()
 
+# Handle non-text messages
+@bot.message_handler(func=lambda message: True, content_types=['audio', 'photo', 'voice', 'video', 'document', 'location', 'contact', 'sticker'])
+def default_command(inputMessage: telebot.types.Message):
+    bot.reply_to(inputMessage, "Hi " + inputMessage.from_user.first_name + ",\nI'm very sorry but i have no idea on how to interact with this object")
+
 # Create async reply
 def ReplyAi(inputMessage: telebot.types.Message, botType):
     # Generate temporary reply
