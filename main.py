@@ -76,7 +76,7 @@ def ReplyAi(inputMessage: telebot.types.Message, botType):
     chat_history.append({"role": "user", "content": inputQuery})
     # Create the GPT4FREE instance
     try:
-        gptResponse: str = g4f.ChatCompletion.create(model=botType, messages=[{"role": "user", "content": inputQuery}])
+        gptResponse: str = g4f.ChatCompletion.create(model=botType, messages=list(chat_history))
     except Exception as retExc:
         # Get response
         response = str(retExc)
