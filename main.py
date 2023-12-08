@@ -6,6 +6,7 @@ import g4f
 import logging
 import re
 from collections import deque
+from flask import Flask
 
 # Specify logging level
 logging.basicConfig(level=logging.DEBUG)
@@ -111,7 +112,9 @@ def ReplyAi(inputMessage: telebot.types.Message, botType):
     # Process the input text
     bot.edit_message_text(gptResponse, inputMessage.chat.id, newReply.id)
 
+app = Flask(__name__)
 
-if __name__ == "__main__":
+@app.route('/')
+def index():
     logging.info("Starting bot")
     bot.infinity_polling()
