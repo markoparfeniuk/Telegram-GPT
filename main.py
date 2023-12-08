@@ -3,16 +3,23 @@ import os
 import telebot
 import threading
 import g4f
+import logging
 import re
 from collections import deque
+
+# Specify logging level
+logging.basicConfig(level=logging.DEBUG)
 
 # Read API Token from environment variables
 BOT_TOKEN: str = os.environ.get('BOT_TOKEN')
 if (not BOT_TOKEN):
+    logging.critical("Input token is empty!")
     raise Exception("Invalid BOT_TOKEN")
 if (len(BOT_TOKEN) < 10):
+    logging.critical("Input token is too short!")
     raise Exception("Invalid BOT_TOKEN")
 if (":" not in BOT_TOKEN):
+    logging.critical("Invalid input token format")
     raise Exception("Invalid BOT_TOKEN")
 # Generate bot object
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -67,6 +74,7 @@ def ReplyAi(inputMessage: telebot.types.Message, botType):
     inputQuery = re.sub(r"\/(\w+)", "", inputMessage.text).strip()
     if (not inputQuery):
         inputQuery = "Hello, who are you?"
+    logging.debug(inputQuery)
     # Get the conversation history for this chat
     chat_id = inputMessage.chat.id
     if chat_id not in chat_histories:
@@ -78,6 +86,8 @@ def ReplyAi(inputMessage: telebot.types.Message, botType):
     try:
         gptResponse: str = g4f.ChatCompletion.create(model=botType, messages=list(chat_history))
     except Exception as retExc:
+        # Plot errors if needed
+        logging.error(retExc)
         # Get response
         response = str(retExc)
         # Check if we have some known errors
@@ -103,4 +113,5 @@ def ReplyAi(inputMessage: telebot.types.Message, botType):
 
 
 if __name__ == "__main__":
+    logging.info("Starting bot")
     bot.infinity_polling()
